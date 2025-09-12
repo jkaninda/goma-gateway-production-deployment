@@ -1,5 +1,5 @@
 # ================================
-# Goma Gateway Configuration
+# Goma Gateway Main Configuration
 # ================================
 gateway:
   timeouts:
@@ -8,41 +8,46 @@ gateway:
     idle: 60
   entryPoints:
     web:
-      address: "[::]:80" 
+      address: "[::]:80"
     webSecure:
       address: "[::]:443"
-  # Custom TLS configuration, but you can also use letsencrypt to generate a certificate
+
+  # TLS configuration using custom certificates
+  # (Alternatively, use Let's Encrypt via certManager below)
   tls:
-    keys: [] 
+    keys: []
      # - cert: /etc/goma/certs/cert.pem
      #   key: /etc/goma/certs/key.pem
+
+  # Redis integration (optional)
   redis:
-   # addr: "${REDIS_ADDR}"  # Redis server address
-   # password: ${REDIS_PASSWORD}       # Redis password, if any
-    db: 0  # Redis database number
-    flushOnStartup: false  # Flush Redis on startup
-  networking:
-    transport:
-      insecureSkipVerify: true
+    addr: "${REDIS_ADDR}"       # Redis server address
+    password: ${REDIS_PASSWORD} # Redis password (optional)
+    db: 0                       # Redis database number (optional)
+    flushOnStartup: false       # Flush Redis on startup (optional)
+  # Monitoring & metrics
   monitoring:
-    host: metrics.example.com # metrics hostname, any host from routes can be used
+    host: metrics.example.com   # Metrics hostname (must match a defined route host)
     enableMetrics: true
-    metricsPath: /metrics # custom metrics path
-    enableReadiness: false
-    enableLiveness: true
-    enableRouteHealthCheck: false
-    includeRouteHealthErrors: false
+    metricsPath: /metrics       # Custom metrics endpoint path
+    enableReadiness: false      # Readiness probe endpoint
+    enableLiveness: true        # Liveness probe endpoint
     middleware:
       metrics:
-       - metrics-auth
+        - metrics-auth          # Middleware(s) applied to metrics endpoint
+
+  # Logging configuration
   log:
-   level: info
-  # Extra configuration files
+    level: info                 # Log level: debug, info, warn, error, off
+
+  # Load extra configuration files
   extraConfig:
-    directory: /etc/goma/extra 
-    watch: true  # Watch for changes in the extra configuration files
+    directory: /etc/goma/extra
+    watch: true                 # Auto-reload on file changes (ideal for GitOps)
+
+# Certificate Manager
 certManager:
   acme:
-    ## Uncomment email to enable Let's Encrypt
-    # email: admin@example.com # Email for ACME registration
-    storageFile: /etc/letsencrypt/acme.json
+    ## Enable Let's Encrypt by providing your email (required for ACME)
+    # email: admin@example.com   # Contact email for certificate registration
+    storageFile: /etc/letsencrypt/acme.json # Stores certs & keys, secure with proper permissions

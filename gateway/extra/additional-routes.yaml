@@ -1,0 +1,15 @@
+# ================================
+# Route Configuration
+# ================================
+# Example of path based routing
+routes:
+  - name: okapi-v2
+    path: /api/v2
+    enabled: false
+    methods: ["GET"] # Allow GET method only for this route
+    hosts: 
+       - okapi.example.com
+    rewrite: / # Rewrite /api/v2 to /
+    target: http://okapi-example:8080
+    middlewares:
+      - enforceHttps # ensures all traffic is redirected to HTTPS.

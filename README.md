@@ -23,8 +23,8 @@ Make sure you have installed:
 ## 2. Clone the Repository
 
 ```sh
-git clone https://github.com/jkaninda/goma-gateway-production-deployment.git
-cd goma-gateway-production-deployment
+git clone https://github.com/jkaninda/goma-gateway-production-deployment.git deployments
+cd deployments
 ```
 
 ---
@@ -103,9 +103,24 @@ routes:
       - enforceHttps # ensures all traffic is redirected to HTTPS.
 ```
 
-💡 **Tip**: You can split routes into multiple files when `extraConfig` and `watch` are enabled in `goma.yml`. Goma Gateway will automatically reload on changes — no restart needed. Perfect for GitOps workflows!
+💡 **Tip**: You can split routes into multiple files when `extraConfig` and `watch` are enabled in `goma.yml`. Goma Gateway will automatically reload on changes — no restart needed.
+Ideal for GitOps workflows!
 
----
+⚡ **Redis Support**:
+Redis is optional. Goma Gateway provides in-memory rate limiting and caching out of the box, but Redis is **recommended** for production setups to ensure persistence, scalability, and efficient distributed rate limiting.
+
+⚡ **TLS Certificates**:
+
+To enable **Let’s Encrypt** with Goma Gateway, add your email address under the `certManager` section in the `goma.yml` config.
+Goma Gateway will automatically request, manage, and renew TLS certificates for you.
+
+```yaml
+certManager:
+  acme:
+    ## Add your email to enable Let's Encrypt (required by ACME)
+    email: admin@example.com  # Contact email for ACME registration
+    storageFile: /etc/letsencrypt/acme.json
+```
 
 ## 6. Start the Stacks
 

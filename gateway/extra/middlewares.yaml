@@ -17,22 +17,22 @@
 # ================================
 
 middlewares:
-  # Redirects all HTTP traffic to HTTPS
+  # Redirect all HTTP traffic to HTTPS
   - name: enforceHttps
     type: redirectScheme
     rule:
       scheme: https
 
-  # Rate limiting middleware  (Redis is optional)
+  # Rate limiting middleware (uses in-memory by default; Redis recommended for scale/persistence)
   - name: rate-limit
-    type: rateLimit 
+    type: rateLimit
     rule:
       unit: minute        
-      requestsPerUnit: 120
-      # banAfter: 5    # Uncomment to ban client after 5 repeated violations
-      # banDuration: 2m # Uncomment to set ban duration (e.g., 2m, 1h)
+      requestsPerUnit: 60
+      # banAfter: 5       # (Optional) Ban client after 5 repeated violations
+      # banDuration: 2m   # (Optional) Ban duration (e.g., 2m, 1h)
 
-  # Blocks access to sensitive/internal API paths
+  # Block access to sensitive/internal API endpoints
   - name: api-forbidden-paths
     type: access
     paths:
@@ -40,12 +40,24 @@ middlewares:
       - /internal/.*
       - /docs/.*
 
-  # Access policy middleware (DENY or ALLOW by IP/CIDR)
+  # Define access policies by IP address, range, or CIDR
   - name: deny-access
     type: accessPolicy
     rule:
       action: DENY # Options: DENY | ALLOW
       sourceRanges:
-        - 90.91.91.38
-        - 2001:db8::/64
-        - 172.24.0.0/16
+        - 10.25.5.30              # Single IP address
+        - 10.25.10.30-10.25.10.100 # IP range
+        - 2001:db8::/64           # IPv6 CIDR block
+        - 10.25.10.0/16           # IPv4 CIDR block
+
+  # HTTP caching middleware (in-memory by default; Redis recommended for production)
+  - name: http-cache
+    type: httpCache
+    paths:
+      - ^/books/(.*)$
+    rule:
+      maxTtl: 300
+      memoryLimit: 100Mi              # Supported units: Ki, Mi, Gi, Ti or K, M, G, T
+      disableCacheStatusHeader: false # Whether to hide cache-related response headers
+      excludedResponseCodes: ["400", "404", "500-599"] # Do not cache these responses

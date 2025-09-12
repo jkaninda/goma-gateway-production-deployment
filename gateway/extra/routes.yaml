@@ -14,7 +14,8 @@ routes:
     # Middlewares are executed in the order they are defined
     middlewares:
       - enforceHttps # ensures all traffic is redirected to HTTPS.
-      #- rate-limit  # Uncomment to enable rate limiting
+      - rate-limit  # Uncomment to enable rate limiting
+      - http-cache
 
   - name: wordpress
     methods: []
@@ -24,7 +25,6 @@ routes:
     target: http://wordpress:80
     middlewares:
       - enforceHttps
-      #- rate-limit  # Uncomment to enable rate limiting
 
   - name: grafana
     hosts:
