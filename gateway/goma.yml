@@ -1,0 +1,48 @@
+# ================================
+# Goma Gateway Configuration
+# ================================
+gateway:
+  timeouts:
+    write: 60
+    read: 60
+    idle: 60
+  entryPoints:
+    web:
+      address: "[::]:80" 
+    webSecure:
+      address: "[::]:443"
+  # Custom TLS configuration, but you can also use letsencrypt to generate a certificate
+  tls:
+    keys: [] 
+     # - cert: /etc/goma/certs/cert.pem
+     #   key: /etc/goma/certs/key.pem
+  redis:
+   # addr: "${REDIS_ADDR}"  # Redis server address
+   # password: ${REDIS_PASSWORD}       # Redis password, if any
+    db: 0  # Redis database number
+    flushOnStartup: false  # Flush Redis on startup
+  networking:
+    transport:
+      insecureSkipVerify: true
+  monitoring:
+    host: metrics.example.com # metrics hostname, any host from routes can be used
+    enableMetrics: true
+    metricsPath: /metrics # custom metrics path
+    enableReadiness: false
+    enableLiveness: true
+    enableRouteHealthCheck: false
+    includeRouteHealthErrors: false
+    middleware:
+      metrics:
+       - metrics-auth
+  log:
+   level: info
+  # Extra configuration files
+  extraConfig:
+    directory: /etc/goma/extra 
+    watch: true  # Watch for changes in the extra configuration files
+certManager:
+  acme:
+    ## Uncomment email to enable Let's Encrypt
+    # email: admin@example.com # Email for ACME registration
+    storageFile: /etc/letsencrypt/acme.json

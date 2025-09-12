@@ -1,0 +1,10 @@
+services:
+  okapi-example:
+    image: jkaninda/okapi-example
+    container_name: okapi-example
+    restart: always
+    networks:
+      - web
+networks:
+  web:
+    external: true

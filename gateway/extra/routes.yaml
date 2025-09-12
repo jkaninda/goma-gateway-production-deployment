@@ -1,0 +1,36 @@
+# ================================
+# Route Configuration
+# ================================
+# routes can be defined in multiple files,
+# just make sure the files are in the directory defined in extraConfig
+routes:
+  - name: okapi-example
+    methods: [] # Empty array means all methods are allowed
+    hosts: 
+       - okapi.example.com
+    path: /
+    rewrite: / # Rewrite to the target
+    target: http://okapi-example:8080
+    # Middlewares are executed in the order they are defined
+    middlewares:
+      - enforceHttps # ensures all traffic is redirected to HTTPS.
+      #- rate-limit  # Uncomment to enable rate limiting
+
+  - name: wordpress
+    methods: []
+    hosts: 
+       - wordpress.example.com
+    path: /
+    target: http://wordpress:80
+    middlewares:
+      - enforceHttps
+      #- rate-limit  # Uncomment to enable rate limiting
+
+  - name: grafana
+    hosts:
+      - grafana.example.com
+    path: /
+    target: http://grafana:3000
+    #disableMetrics: true # Uncomment to disable metrics collection for this route
+    middlewares:
+      - enforceHttps # ensures all traffic is redirected to HTTPS.

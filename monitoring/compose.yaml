@@ -1,0 +1,27 @@
+services:
+  prometheus:
+      image: bitnami/prometheus:3.5.0
+      container_name: prometheus
+      restart: unless-stopped
+      expose:
+        - 9090
+      volumes:
+        - ./prometheus.yml:/etc/prometheus/prometheus.yml
+        - prometheus:/prometheus
+      networks:
+        - web
+  grafana:
+      image: grafana/grafana:12.1.0
+      container_name: grafana
+      restart: always
+      volumes:
+        - ./datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+        - grafana:/var/lib/grafana
+      networks:
+        - web 
+volumes:
+  grafana: {}
+  prometheus: {}
+networks:
+  web:
+    external: true

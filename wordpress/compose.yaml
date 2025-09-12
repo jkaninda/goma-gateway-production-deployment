@@ -1,0 +1,35 @@
+services:
+  wordpress-db:
+    image: mysql:8.0
+    restart: always
+    container_name: wordpress-db
+    environment:
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: password
+      MYSQL_RANDOM_ROOT_PASSWORD: password
+    volumes:
+      - database:/var/lib/mysql
+    networks:
+      - web
+  wordpress:
+    image: wordpress:php8.1-apache
+    container_name: wordpress
+    restart: always
+    environment:
+      WORDPRESS_DB_HOST: wordpress-db
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: password
+      WORDPRESS_DB_NAME: wordpress
+    volumes:
+      - data-www:/var/www/html
+      - data:/data
+    networks:
+      - web
+volumes:
+  database:
+  data-www:
+  data:
+networks:
+  web:
+    external: true

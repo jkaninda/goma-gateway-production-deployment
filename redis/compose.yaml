@@ -1,0 +1,15 @@
+services:
+  redis:
+    image: redis:alpine
+    command: redis-server --appendonly yes --requirepass "password!"
+    container_name: redis
+    restart: always
+    volumes:
+     - data:/data
+    networks:
+       - web
+networks:
+  web:
+    external: true
+volumes:
+  data:

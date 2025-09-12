@@ -1,0 +1,51 @@
+# ================================
+# Middleware Configuration
+# ================================
+# Middlewares define behaviors applied to requests before they reach the backend.
+#
+#   Extra Config & GitOps
+# - If `extraConfig` is enabled in goma.yml and `watch` is turned on, you can
+#   split routes and middlewares into multiple files.
+# - All files must be located in the directory defined in goma.yml.
+# - Any change to those files will trigger an automatic reload — no need to restart Goma Gateway.
+# - This makes it easy to follow GitOps practices: just commit and push your changes,
+#   then pull them into production to update routes and middlewares automatically.
+#
+#  Notes:
+# - Middlewares are executed in the order they are defined in the route.
+# - You can mix and match multiple middleware types for flexible behavior.
+# ================================
+
+middlewares:
+  # Redirects all HTTP traffic to HTTPS
+  - name: enforceHttps
+    type: redirectScheme
+    rule:
+      scheme: https
+
+  # Rate limiting middleware  (Redis is optional)
+  - name: rate-limit
+    type: rateLimit 
+    rule:
+      unit: minute        
+      requestsPerUnit: 120
+      # banAfter: 5    # Uncomment to ban client after 5 repeated violations
+      # banDuration: 2m # Uncomment to set ban duration (e.g., 2m, 1h)
+
+  # Blocks access to sensitive/internal API paths
+  - name: api-forbidden-paths
+    type: access
+    paths:
+      - /api-docs/.*
+      - /internal/.*
+      - /docs/.*
+
+  # Access policy middleware (DENY or ALLOW by IP/CIDR)
+  - name: deny-access
+    type: accessPolicy
+    rule:
+      action: DENY # Options: DENY | ALLOW
+      sourceRanges:
+        - 90.91.91.38
+        - 2001:db8::/64
+        - 172.24.0.0/16

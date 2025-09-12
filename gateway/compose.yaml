@@ -1,0 +1,25 @@
+services:
+  gateway:
+    image: jkaninda/goma-gateway
+    container_name: gateway
+    restart: always
+    env_file: .env
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./:/etc/goma
+      - letsencrypt:/etc/letsencrypt
+    healthcheck:
+      test: curl -f http://localhost/healthz || exit 1
+      interval: 30s
+      retries: 5
+      start_period: 20s
+      timeout: 10s
+    networks:
+      - web
+networks:
+  web:
+    external: true
+volumes:
+  letsencrypt: {}
