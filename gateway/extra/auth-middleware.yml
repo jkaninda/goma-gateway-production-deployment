@@ -1,5 +1,5 @@
 # ================================
-# Middleware Configuration
+# Middlewares Configuration
 # ================================
 middlewares:
   - name: basic_auth

@@ -66,7 +66,7 @@ Content of the routes file: `gateway/extra/routes.yaml`
 
 ```yaml
 # ================================
-# Route Configuration
+# Routes Configuration
 # ================================
 # routes can be defined in multiple files,
 # just make sure the files are in the directory defined in extraConfig
@@ -81,7 +81,8 @@ routes:
     # Middlewares are executed in the order they are defined
     middlewares:
       - enforceHttps # ensures all traffic is redirected to HTTPS.
-      #- rate-limit  # Uncomment to enable rate limiting
+      - rate-limit
+      - http-cache
 
   - name: wordpress
     methods: []
@@ -91,7 +92,6 @@ routes:
     target: http://wordpress:80
     middlewares:
       - enforceHttps
-      #- rate-limit  # Uncomment to enable rate limiting
 
   - name: grafana
     hosts:

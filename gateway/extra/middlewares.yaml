@@ -1,5 +1,5 @@
 # ================================
-# Middleware Configuration
+# Middlewares Configuration
 # ================================
 # Middlewares define behaviors applied to requests before they reach the backend.
 #
@@ -14,6 +14,8 @@
 #  Notes:
 # - Middlewares are executed in the order they are defined in the route.
 # - You can mix and match multiple middleware types for flexible behavior.
+#
+# Documentation: https://jkaninda.github.io/goma-gateway/middlewares/
 # ================================
 
 middlewares:
@@ -51,13 +53,17 @@ middlewares:
         - 2001:db8::/64           # IPv6 CIDR block
         - 10.25.10.0/16           # IPv4 CIDR block
 
-  # HTTP caching middleware (in-memory by default; Redis recommended for production)
+  # HTTP caching middleware
+  # - Uses in-memory storage by default (best for testing/dev)
+  # - For production, Redis or another external cache backend is recommended
   - name: http-cache
     type: httpCache
     paths:
       - ^/books/(.*)$
     rule:
-      maxTtl: 300
-      memoryLimit: 100Mi              # Supported units: Ki, Mi, Gi, Ti or K, M, G, T
-      disableCacheStatusHeader: false # Whether to hide cache-related response headers
-      excludedResponseCodes: ["400", "404", "500-599"] # Do not cache these responses
+      maxTtl: 300 # Maximum cache lifetime (seconds). Responses older than this are invalidated.
+      maxStale: 0 # Allow serving stale responses (in seconds) if client permits via Cache-Control:max-stale
+      memoryLimit: 100Mi # Memory limit for in-memory cache. Units: Ki, Mi, Gi, Ti (case-insensitive: K, M, G, T also supported)
+      disableCacheStatusHeader: false # If true, cache-related headers (e.g., X-Cache-Status) will be suppressed
+      excludedResponseCodes: ["400", "404", "500-599"] # Response codes or ranges to exclude from caching
+
