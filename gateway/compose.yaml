@@ -1,15 +1,22 @@
 services:
+  # Goma Gateway - Main API Gateway service
+  # Handles HTTP/HTTPS traffic routing, middleware, and SSL termination
   gateway:
     image: jkaninda/goma-gateway
     container_name: gateway
     restart: always
     env_file: .env
     ports:
-      - 80:80
-      - 443:443
+      - 80:80    # HTTP port
+      - 443:443  # HTTPS port
     volumes:
+      # Gateway configuration directory
       - ./:/etc/goma
+      # SSL certificates managed by Let's Encrypt
       - letsencrypt:/etc/letsencrypt
+      # Optional: Docker provider configuration files
+      # Uncomment if using Docker provider for dynamic configuration
+      # - providers:/etc/goma/providers
     healthcheck:
       test: curl -f http://localhost/healthz || exit 1
       interval: 30s
@@ -18,8 +25,38 @@ services:
       timeout: 10s
     networks:
       - web
+
+  # Docker Provider (Optional)
+  # Dynamically generates gateway configuration from Docker container labels
+  # Similar to Traefik's Docker provider functionality
+  # Remove this service if you prefer static configuration files
+  # Documentation: https://github.com/jkaninda/goma-docker-provider
+  provider:
+    image: jkaninda/goma-docker-provider
+    container_name: provider
+    restart: always
+    volumes:
+      # Read-only access to Docker socket for container discovery
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Optional: Output directory for generated configuration
+      # Uncomment if using shared volume with gateway
+      # - providers:/etc/goma/providers
+    environment:
+      # Directory where provider writes configuration files
+      - GOMA_OUTPUT_DIR=/etc/goma/providers
+      # Set to true if using Docker Swarm mode
+      - GOMA_ENABLE_SWARM=false
+
+# External network for container communication
+# Must be created beforehand: docker network create web
 networks:
   web:
     external: true
+
+# Persistent volumes
 volumes:
+  # Stores SSL certificates and Let's Encrypt account data
   letsencrypt: {}
+  # Optional: Shared volume for dynamic configuration files
+  # Uncomment if using Docker provider
+  # providers: {}

@@ -3,6 +3,12 @@ services:
     image: jkaninda/okapi-example
     container_name: okapi-example
     restart: always
+    # When using Goma Docker provider
+    labels:
+      # Core
+      - "goma.enable=true"
+      - "goma.port=8080"
+      - "goma.hosts=api.example.com,api.local"
     networks:
       - web
 networks:

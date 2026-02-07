@@ -1,8 +1,8 @@
 services:
   prometheus:
-      image: bitnami/prometheus:3.5.0
+      image: ubuntu/prometheus:3-24.04_stable
       container_name: prometheus
-      restart: unless-stopped
+      restart: always
       expose:
         - 9090
       volumes:

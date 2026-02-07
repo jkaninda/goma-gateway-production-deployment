@@ -11,7 +11,7 @@ scrape_configs:
       insecure_skip_verify: true
     scrape_interval: 30s # poll very quickly for a more responsive demo
     static_configs:
-      - targets: ["metrics.example.com"]
+      - targets: ["gateway"]
         labels:
           application: 'goma_gateway'
     basic_auth:

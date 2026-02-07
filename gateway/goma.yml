@@ -1,53 +1,128 @@
 # ================================
-# Goma Gateway Main Configuration
+# Goma Gateway — Main Configuration
 # ================================
 gateway:
   timeouts:
     write: 60
     read: 60
     idle: 60
+
   entryPoints:
     web:
       address: "[::]:80"
     webSecure:
       address: "[::]:443"
 
-  # TLS configuration using custom certificates
-  # (Alternatively, use Let's Encrypt via certManager below)
+  # TLS configuration using custom certificates.
+  # If not using ACME via certManager below, define certificates here.
   tls:
-    keys: []
-     # - cert: /etc/goma/certs/cert.pem
-     #   key: /etc/goma/certs/key.pem
+   # keys: [] Deprecated since v0.70 # List of certificate/key pairs
+    certificates: []   # List of certificate/key pairs
+    #  - cert: /etc/goma/certs/cert.pem
+    #    key: /etc/goma/certs/key.pem
+
+    # Default certificate (used when no SNI match)
+    default: {}
+    #   cert: /etc/goma/default-cert.pem
+    #   key: /etc/goma/default-key.pem
+
+    # Mutual TLS (mTLS) for inbound client authentication.
+    # Allows validating TLS client certificates.
+    clientAuth: {}
+    #   clientCA: /etc/goma/certs/ca.pem
+    #   required: true
+
+  # Providers allow loading routes + middlewares dynamically from various sources.
+  providers:
+
+    # File Provider — loads YAML/JSON configs from local directory
+    file: {}
+    #   enabled: false
+    #   directory: /etc/goma/providers
+    #   watch: true     # Reload on file change
+
+    # HTTP Provider — fetch config from remote HTTP API (useful for centralized control)
+    # See: https://github.com/jkaninda/goma-http-provider
+    http: {}
+    #   enabled: false
+    #   endpoint: "https://config.example.com/api/gateway/config"
+    #   interval: 60s
+    #   timeout: 10s
+    #   retryAttempts: 3
+    #   retryDelay: 2s
+    #   cacheDir: "/tmp/goma/cache/config.json"
+    #   insecureSkipVerify: false
+    #   headers:
+    #     X-Gateway-ID: "goma-prod-01"
+    #     Authorization: "${GOMA_AUTHORIZATION}"
+
+    # Git Provider — ideal for GitOps workflows
+    # Fetches configuration from Git repositories
+    git:
+      enabled: true
+      url: "https://github.com/jkaninda/goma-gateway-production-deployment.git"
+      branch: "main"
+      path: /examples
+      interval: 60s
+      auth: {}
+      #   type: token | basic | ssh
+      #   token: ${GIT_TOKEN}
+      #   username: ${GIT_USER_NAME}
+      #   password: ${GIT_PASSWORD}
+      #   sshKeyPath: /etc/goma/ssh/key
+      #   sshKeyData: ${GIT_SSH_KEY_DATA}
+      cloneDir: ""
+
+  # Proxy configuration (optional)
+  # Use when running behind a proxy, LB, or CDN (Cloudflare, HAProxy, Nginx, etc.)
+  proxy:
+    enabled: false
+    trustedProxies:               # IPs/CIDRs trusted to forward client IP
+      - "127.0.0.1"
+      - "10.0.0.0/8"
+      - "192.168.0.0/16"
+      - "::1"
+      - "fc00::/7"
+    ipHeaders:                    # Headers inspected in order for real client IP
+      - "CF-Connecting-IP"
+      - "X-Forwarded-For"
+      - "X-Real-IP"
+      - "True-Client-IP"
+      - "Forwarded"
 
   # Redis integration (optional)
+  # Used by some middlewares (rate limiting, caching, etc.)
   redis:
-    addr: "${REDIS_ADDR}"       # Redis server address
-    password: ${REDIS_PASSWORD} # Redis password (optional)
-    db: 0                       # Redis database number (optional)
-    flushOnStartup: false       # Flush Redis on startup (optional)
-  # Monitoring & metrics
+    addr: "${REDIS_ADDR}"
+    password: ${REDIS_PASSWORD}
+    db: 0
+    flushOnStartup: false
+
+
+
+  # Metrics & health endpoints
   monitoring:
-    host: metrics.example.com   # Metrics hostname (must match a defined route host)
+    host: gateway                 # Must match hostname of a route
     enableMetrics: true
-    metricsPath: /metrics       # Custom metrics endpoint path
-    enableReadiness: false      # Readiness probe endpoint
-    enableLiveness: true        # Liveness probe endpoint
+    metricsPath: /metrics
+    enableReadiness: false        # /readyz endpoint
+    enableLiveness: true          # /healthz endpoint
     middleware:
       metrics:
-        - metrics-auth          # Middleware(s) applied to metrics endpoint
+        - metrics-auth            # Middleware applied to metrics
 
   # Logging configuration
   log:
-    level: info                 # Log level: debug, info, warn, error, off
+    level: info                   # debug | info | warn | error | off
 
-  # Load extra configuration files
+  # Load additional configuration files
   extraConfig:
     directory: /etc/goma/extra
-    watch: true                 # Auto-reload on file changes (ideal for GitOps)
+    watch: true
 
 # Certificate Manager
 certManager:
   acme:
-    ## Enable Let's Encrypt by providing your email (required for ACME)
-    # email: admin@example.com   # Contact email for certificate registration
-    storageFile: /etc/letsencrypt/acme.json # Stores certs & keys, secure with proper permissions
+    # Enable Let's Encrypt by providing your contact email
+    # email: admin@example.com
+    storageFile: /etc/letsencrypt/acme.json   # Stores certs & keys securely

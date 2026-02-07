@@ -1,0 +1,22 @@
+# ================================
+# Routes Configuration
+# ================================
+# Routes define how inbound HTTP requests are matched and forwarded to backend services.
+#
+# Documentation:
+#   https://jkaninda.github.io/goma-gateway/usermanual/route.html
+#
+# Notes:
+# - Routes can be split across multiple files.
+# - All route files must be located under the directory configured in `extraConfig.directory`.
+# Routes Configuration
+routes:
+  - name: okapi-api
+    hosts:
+      - okapi.example.com
+    path: /v1
+    rewrite: /
+    target: http://core-api:8080
+    middlewares: ["enforceHttps"]
+# Middlewares Configuration
+middlewares: []

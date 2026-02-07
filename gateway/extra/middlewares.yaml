@@ -1,40 +1,46 @@
 # ================================
 # Middlewares Configuration
 # ================================
-# Middlewares define behaviors applied to requests before they reach the backend.
+# Middlewares apply processing steps to requests before they are forwarded
+# to backend services, and/or modify responses afterwards.
 #
-#   Extra Config & GitOps
-# - If `extraConfig` is enabled in goma.yml and `watch` is turned on, you can
-#   split routes and middlewares into multiple files.
-# - All files must be located in the directory defined in goma.yml.
-# - Any change to those files will trigger an automatic reload — no need to restart Goma Gateway.
-# - This makes it easy to follow GitOps practices: just commit and push your changes,
-#   then pull them into production to update routes and middlewares automatically.
+# GitOps & Extra Config:
+# - When `extraConfig` is enabled and `watch` is true in goma.yml,
+#   you can split routes and middlewares across multiple files.
+# - All files must be placed under the directory defined in goma.yml.
+# - Any change triggers automatic hot-reload (no restart required),
+#   making Goma Gateway friendly for GitOps workflows:
+#       → commit, push, deploy, and changes take effect automatically.
 #
-#  Notes:
-# - Middlewares are executed in the order they are defined in the route.
-# - You can mix and match multiple middleware types for flexible behavior.
+# Notes:
+# - Middleware execution order is defined in each route.
+# - Multiple middleware types can be chained for flexible behavior.
 #
-# Documentation: https://jkaninda.github.io/goma-gateway/middlewares/
+# Documentation:
+# → https://jkaninda.github.io/goma-gateway/middlewares/
 # ================================
 
 middlewares:
-  # Redirect all HTTP traffic to HTTPS
+
+  # Enforce HTTPS — redirects all HTTP requests to HTTPS
   - name: enforceHttps
     type: redirectScheme
     rule:
       scheme: https
 
-  # Rate limiting middleware (uses in-memory by default; Redis recommended for scale/persistence)
+  # Rate Limiting middleware
+  # Uses in-memory by default; Redis is recommended for
+  # distributed setups or persistence across instances.
   - name: rate-limit
     type: rateLimit
     rule:
-      unit: minute        
+      unit: minute
       requestsPerUnit: 60
-      # banAfter: 5       # (Optional) Ban client after 5 repeated violations
-      # banDuration: 2m   # (Optional) Ban duration (e.g., 2m, 1h)
+      burst: 100                 # Allow short bursts beyond steady rate
+      # banAfter: 5              # (Optional) Ban client after N violations
+      # banDuration: 2m          # (Optional) Duration of the temporary ban
 
-  # Block access to sensitive/internal API endpoints
+  # Access restriction middleware — block sensitive paths
   - name: api-forbidden-paths
     type: access
     paths:
@@ -42,28 +48,50 @@ middlewares:
       - /internal/.*
       - /docs/.*
 
-  # Define access policies by IP address, range, or CIDR
+  # IP Address Access Policy (Allow or Deny logic)
+  # Supports single IPs, ranges, IPv4/IPv6 CIDRs
   - name: deny-access
     type: accessPolicy
     rule:
-      action: DENY # Options: DENY | ALLOW
+      action: DENY                # DENY or ALLOW
       sourceRanges:
-        - 10.25.5.30              # Single IP address
-        - 10.25.10.30-10.25.10.100 # IP range
-        - 2001:db8::/64           # IPv6 CIDR block
-        - 10.25.10.0/16           # IPv4 CIDR block
+        - 10.25.5.30               # Single IPv4
+        - 10.25.10.30-10.25.10.100 # IPv4 range
+        - 2001:db8::/64            # IPv6 CIDR
+        - 10.25.10.0/16            # IPv4 CIDR
 
-  # HTTP caching middleware
-  # - Uses in-memory storage by default (best for testing/dev)
-  # - For production, Redis or another external cache backend is recommended
+  # HTTP Cache middleware
+  # - In-memory backend for dev/testing
+  # - Redis recommended for production or cross-instance caching
   - name: http-cache
     type: httpCache
     paths:
       - ^/books/(.*)$
     rule:
-      maxTtl: 300 # Maximum cache lifetime (seconds). Responses older than this are invalidated.
-      maxStale: 0 # Allow serving stale responses (in seconds) if client permits via Cache-Control:max-stale
-      memoryLimit: 100Mi # Memory limit for in-memory cache. Units: Ki, Mi, Gi, Ti (case-insensitive: K, M, G, T also supported)
-      disableCacheStatusHeader: false # If true, cache-related headers (e.g., X-Cache-Status) will be suppressed
-      excludedResponseCodes: ["400", "404", "500-599"] # Response codes or ranges to exclude from caching
+      maxTtl: 300                     # Max lifetime (seconds)
+      maxStale: 0                     # Allows stale serving if client requests via Cache-Control:max-stale
+      memoryLimit: 100Mi              # Limit for in-memory cache (supports Ki/Mi/Gi/Ti)
+      disableCacheStatusHeader: false # Hide or expose cache debug headers
+      excludedResponseCodes:
+        - "400"
+        - "404"
+        - "500-599"                  # Range of status codes excluded from caching
 
+  # Response header manipulation (CORS + custom headers)
+  - name: response-headers
+    type: responseHeaders
+    paths: ["/.*"]
+    rule:
+      cors:
+        enabled: true
+        origins:
+          - https://www.example.com
+          - https://example.com
+        allowMethods: []                # Empty = allow all methods
+        allowCredentials: true
+      setHeaders:
+        X-Powered-By: ""                # Override/remove server signature
+        X-Gateway-Id: gateway-prod-1
+        X-Gateway-Instance: ${GATEWAY_INSTACE}   # From environment
+        X-Goma-Route: "{route.name}"    # Inject route name into response
+      cacheControl: "private, no-cache, no-store, must-revalidate"

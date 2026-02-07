@@ -170,6 +170,35 @@ Redis is used by Goma Gateway for:
 
 Redis is optional, but highly recommended if you want production-grade performance and security.
 
+## Providers
+
+### 1. Docker / Swarm Provider
+
+The **Goma Gateway Docker Provider** automatically generates **Goma Gateway configurations** from container labels in **Docker** and **Docker Swarm** environments.
+
+By simply adding labels to your containers, routes and middleware are discovered and configured dynamically no manual YAML configuration required.
+
+If you’ve used **Traefik** before, this will feel familiar: the provider follows a label-driven approach to define routing rules, services, and middleware behavior directly at the container level.
+
+👉 For configuration examples and advanced usage, see the
+[Goma Docker Provider repository](https://github.com/jkaninda/goma-docker-provider)
+
+### 2. HTTP Provider
+
+The **Goma Gateway HTTP Provider** lets you dynamically manage **Goma Gateway configurations** through a RESTful HTTP API.
+
+It enables programmatic creation, updates, and reloads of routes, middleware, and other gateway settings without editing YAML files or restarting the gateway. This makes it ideal for automation, control planes, and dynamic environments.
+
+👉 For configuration examples and advanced usage, see the
+[Goma HTTP Provider repository](https://github.com/jkaninda/goma-http-provider)
+
+### 3. Git Provider
+
+Fetches configuration from a Git repo. Ideal for GitOps setups.
+
+👉 For configuration examples and advanced usage, see 
+[Goma Git Provider Docs](https://goma.jkaninda.dev/usermanual/providers.html)
+
 ## 10. Screenshots
 
 ### Metrics
