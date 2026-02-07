@@ -170,7 +170,7 @@ Redis is used by Goma Gateway for:
 
 Redis is optional, but highly recommended if you want production-grade performance and security.
 
-## Providers
+## 10. Providers
 
 ### 1. Docker / Swarm Provider
 
@@ -199,7 +199,7 @@ Fetches configuration from a Git repo. Ideal for GitOps setups.
 👉 For configuration examples and advanced usage, see 
 [Goma Git Provider Docs](https://goma.jkaninda.dev/usermanual/providers.html)
 
-## 10. Screenshots
+## 11. Screenshots
 
 ### Metrics
 
